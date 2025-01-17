@@ -1,0 +1,39 @@
+//go:generate protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative proto/user/user.proto
+
+syntax = "proto3";
+
+package user;
+option go_package = "douyin-mall/proto/user";
+
+service UserService {
+  rpc Register(RegisterRequest) returns (RegisterResponse) {}
+  rpc GetUserByID(GetUserRequest) returns (UserResponse) {}
+  rpc GetUserByEmail(GetUserByEmailRequest) returns (UserResponse) {}
+}
+
+message GetUserRequest {
+  int64 id = 1;
+}
+
+message GetUserByEmailRequest {
+  string email = 1;
+}
+
+message UserResponse {
+  int64 id = 1;
+  string name = 2;
+  string email = 3;
+  string password = 4;
+  int64 created_at = 5;
+  int64 updated_at = 6;
+}
+
+message RegisterRequest {
+  string email = 1;
+  string password = 2;
+  string confirm_password = 3;
+}
+
+message RegisterResponse {
+  int64 user_id = 1;
+}

@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package auth;
+option go_package = "douyin-mall/proto/auth";
+
+service AuthService {
+  rpc Login(LoginRequest) returns (LoginResponse) {}
+}
+
+message LoginRequest {
+  string email = 1;
+  string password = 2;
+}
+
+message LoginResponse {
+  string token = 1;
+}
