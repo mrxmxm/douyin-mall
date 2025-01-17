@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"douyin-mall/proto/auth"
+	"douyin-mall/proto/product"
 	"douyin-mall/proto/user"
 	"fmt"
 	"log"
@@ -57,5 +58,49 @@ func main() {
 		log.Printf("Login failed: %v", err)
 	} else {
 		log.Printf("Login success, token: %s", loginResp.Token)
+	}
+
+	// 测试商品服务
+	fmt.Println("\n=== Testing Product Service ===")
+
+	// 连接商品服务
+	productConn, err := grpc.Dial("localhost:50053", grpc.WithInsecure())
+	if err != nil {
+		log.Fatalf("Failed to connect product service: %v", err)
+	}
+	defer productConn.Close()
+
+	productClient := product.NewProductCatalogServiceClient(productConn)
+
+	// 测试列出商品
+	listResp, err := productClient.ListProducts(ctx, &product.ListProductsReq{
+		Page:         1,
+		PageSize:     10,
+		CategoryName: "电子产品",
+	})
+	if err != nil {
+		log.Printf("List products failed: %v", err)
+	} else {
+		log.Printf("List products success: %+v", listResp.Products)
+	}
+
+	// 测试搜索商品
+	searchResp, err := productClient.SearchProducts(ctx, &product.SearchProductsReq{
+		Query: "手机",
+	})
+	if err != nil {
+		log.Printf("Search products failed: %v", err)
+	} else {
+		log.Printf("Search products success: %+v", searchResp.Results)
+	}
+
+	// 测试获取单个商品
+	getResp, err := productClient.GetProduct(ctx, &product.GetProductReq{
+		Id: 1,
+	})
+	if err != nil {
+		log.Printf("Get product failed: %v", err)
+	} else {
+		log.Printf("Get product success: %+v", getResp.Product)
 	}
 }
