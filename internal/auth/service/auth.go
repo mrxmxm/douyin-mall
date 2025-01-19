@@ -11,6 +11,8 @@ import (
 	"douyin-mall/proto/user"
 
 	"github.com/golang-jwt/jwt"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type AuthService struct {
@@ -55,4 +57,53 @@ func (s *AuthService) Login(ctx context.Context, req *auth.LoginRequest) (*auth.
 	return &auth.LoginResponse{
 		Token: tokenString,
 	}, nil
+}
+
+// 验证令牌
+func (s *AuthService) VerifyToken(ctx context.Context, req *auth.VerifyTokenRequest) (*auth.VerifyTokenResponse, error) {
+	token, err := jwt.Parse(req.Token, func(token *jwt.Token) (interface{}, error) {
+		return s.jwtSecret, nil
+	})
+
+	if err != nil || !token.Valid {
+		return &auth.VerifyTokenResponse{Valid: false}, nil
+	}
+
+	claims := token.Claims.(jwt.MapClaims)
+	userId := uint32(claims["user_id"].(float64))
+
+	return &auth.VerifyTokenResponse{
+		Valid:  true,
+		UserId: userId,
+	}, nil
+}
+
+// 续期令牌
+func (s *AuthService) RenewToken(ctx context.Context, req *auth.RenewTokenRequest) (*auth.RenewTokenResponse, error) {
+	// 验证旧令牌
+	verifyResp, err := s.VerifyToken(ctx, &auth.VerifyTokenRequest{Token: req.OldToken})
+	if err != nil || !verifyResp.Valid {
+		return nil, status.Error(codes.Unauthenticated, "invalid token")
+	}
+
+	// 生成新令牌
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"user_id": verifyResp.UserId,
+		"exp":     time.Now().Add(24 * time.Hour).Unix(),
+	})
+
+	tokenString, err := token.SignedString(s.jwtSecret)
+	if err != nil {
+		return nil, status.Error(codes.Internal, "failed to generate token")
+	}
+
+	return &auth.RenewTokenResponse{
+		NewToken: tokenString,
+	}, nil
+}
+
+// 登出
+func (s *AuthService) Logout(ctx context.Context, req *auth.LogoutRequest) (*auth.LogoutResponse, error) {
+	// 可以实现令牌黑名单等逻辑
+	return &auth.LogoutResponse{Success: true}, nil
 }

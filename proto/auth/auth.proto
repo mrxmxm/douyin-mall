@@ -5,6 +5,9 @@ option go_package = "douyin-mall/proto/auth";
 
 service AuthService {
   rpc Login(LoginRequest) returns (LoginResponse) {}
+  rpc VerifyToken(VerifyTokenRequest) returns (VerifyTokenResponse) {}
+  rpc RenewToken(RenewTokenRequest) returns (RenewTokenResponse) {}
+  rpc Logout(LogoutRequest) returns (LogoutResponse) {}
 }
 
 message LoginRequest {
@@ -14,4 +17,29 @@ message LoginRequest {
 
 message LoginResponse {
   string token = 1;
+}
+
+message VerifyTokenRequest {
+  string token = 1;
+}
+
+message VerifyTokenResponse {
+  bool valid = 1;
+  uint32 user_id = 2;
+}
+
+message RenewTokenRequest {
+  string old_token = 1;
+}
+
+message RenewTokenResponse {
+  string new_token = 1;
+}
+
+message LogoutRequest {
+  string token = 1;
+}
+
+message LogoutResponse {
+  bool success = 1;
 }
