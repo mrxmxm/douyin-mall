@@ -1,0 +1,58 @@
+syntax = "proto3";
+
+package order;
+
+import "proto/cart/cart.proto";
+
+option go_package = "douyin-mall/proto/order";
+
+service OrderService {
+  rpc PlaceOrder(PlaceOrderReq) returns (PlaceOrderResp) {}
+  rpc ListOrder(ListOrderReq) returns (ListOrderResp) {}
+}
+
+message Address {
+  string street_address = 1;
+  string city = 2;
+  string state = 3;
+  string country = 4;
+  string zip_code = 5;
+}
+
+message PlaceOrderReq {
+  uint32 user_id = 1;
+  string user_currency = 2;
+  Address address = 3;
+  string email = 4;
+  repeated OrderItem order_items = 5;
+}
+
+message OrderItem {
+  cart.CartItem item = 1;
+  float cost = 2;
+}
+
+message OrderResult {
+  string order_id = 1;
+}
+
+message PlaceOrderResp {
+  OrderResult order = 1;
+}
+
+message ListOrderReq {
+  uint32 user_id = 1;
+}
+
+message Order {
+  string order_id = 1;
+  uint32 user_id = 2;
+  string user_currency = 3;
+  repeated OrderItem order_items = 4;
+  string email = 5;
+  int32 created_at = 6;
+}
+
+message ListOrderResp {
+  repeated Order orders = 1;
+}
