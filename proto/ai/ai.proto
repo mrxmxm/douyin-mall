@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package ai;
+
+option go_package = "douyin-mall/proto/ai";
+
+// AI服务接口
+service AIService {
+  rpc QueryOrder(QueryOrderReq) returns (QueryOrderResp) {}    // 订单查询
+  rpc AutoPlaceOrder(AutoOrderReq) returns (AutoOrderResp) {}  // 自动下单
+}
+
+// 订单查询请求
+message QueryOrderReq {
+  uint32 user_id = 1;    // 用户ID
+  string query = 2;      // 查询内容
+}
+
+// 订单查询响应
+message QueryOrderResp {
+  string answer = 1;     // AI回答内容
+}
+
+// 自动下单请求
+message AutoOrderReq {
+  uint32 user_id = 1;    // 用户ID
+  string description = 2; // 商品描述
+}
+
+// 自动下单响应
+message AutoOrderResp {
+  string order_id = 1;   // 创建的订单ID
+}

@@ -2,7 +2,10 @@ package main
 
 import (
 	"context"
+	"douyin-mall/proto/ai"
 	"douyin-mall/proto/auth"
+	"douyin-mall/proto/cart"
+	"douyin-mall/proto/order"
 	"douyin-mall/proto/product"
 	"douyin-mall/proto/user"
 	"fmt"
@@ -111,14 +114,14 @@ func main() {
 	productClient := product.NewProductCatalogServiceClient(productConn)
 
 	// 测试获取商品列表
-	listResp, err := productClient.ListProducts(ctx, &product.ListProductsReq{
+	productsResp, err := productClient.ListProducts(ctx, &product.ListProductsReq{
 		Page:     1,
 		PageSize: 10,
 	})
 	if err != nil {
 		log.Printf("List products failed: %v", err)
 	} else {
-		log.Printf("List products success: %+v", listResp)
+		log.Printf("List products success: %+v", productsResp)
 	}
 
 	// 测试搜索商品
@@ -139,5 +142,119 @@ func main() {
 		log.Printf("Get product failed: %v", err)
 	} else {
 		log.Printf("Get product success: %+v", getResp.Product)
+	}
+
+	// 测试购物车服务
+	fmt.Println("\n=== Testing Cart Service ===")
+	cartService, err := registry.GetService("cart-service")
+	if err != nil {
+		log.Fatalf("Failed to discover cart service: %v", err)
+	}
+	cartConn, err := grpc.Dial(fmt.Sprintf("%s:%d", cartService.Address, cartService.Port), grpc.WithInsecure())
+	if err != nil {
+		log.Fatalf("Failed to connect cart service: %v", err)
+	}
+	cartClient := cart.NewCartServiceClient(cartConn)
+
+	// 添加商品到购物车
+	_, err = cartClient.AddItem(ctx, &cart.AddItemReq{
+		UserId: 1,
+		Item: &cart.CartItem{
+			ProductId: 1,
+			Quantity:  2,
+		},
+	})
+	if err != nil {
+		log.Printf("Add to cart failed: %v", err)
+	}
+
+	// 获取购物车
+	cartResp, err := cartClient.GetCart(ctx, &cart.GetCartReq{UserId: 1})
+	if err != nil {
+		log.Printf("Get cart failed: %v", err)
+	} else {
+		log.Printf("Cart items: %+v", cartResp.Cart.Items)
+	}
+
+	// 测试订单服务
+	fmt.Println("\n=== Testing Order Service ===")
+	orderService, err := registry.GetService("order-service")
+	if err != nil {
+		log.Fatalf("Failed to discover order service: %v", err)
+	}
+	orderConn, err := grpc.Dial(fmt.Sprintf("%s:%d", orderService.Address, orderService.Port), grpc.WithInsecure())
+	if err != nil {
+		log.Fatalf("Failed to connect order service: %v", err)
+	}
+	orderClient := order.NewOrderServiceClient(orderConn)
+
+	// 创建订单
+	orderResp, err := orderClient.PlaceOrder(ctx, &order.PlaceOrderReq{
+		UserId:       1,
+		UserCurrency: "CNY",
+		Email:        "test@example.com",
+		Address: &order.Address{
+			StreetAddress: "测试街道",
+			City:          "测试城市",
+			State:         "测试省份",
+			Country:       "中国",
+			ZipCode:       "100000",
+		},
+		OrderItems: []*order.OrderItem{
+			{
+				Item: &cart.CartItem{
+					ProductId: 1,
+					Quantity:  1,
+				},
+				Cost: 99.9,
+			},
+		},
+	})
+	if err != nil {
+		log.Printf("Place order failed: %v", err)
+	} else {
+		log.Printf("Order created: %+v", orderResp.Order)
+	}
+
+	// 查询订单列表
+	ordersResp, err := orderClient.ListOrder(ctx, &order.ListOrderReq{UserId: 1})
+	if err != nil {
+		log.Printf("List orders failed: %v", err)
+	} else {
+		log.Printf("Orders: %+v", ordersResp.Orders)
+	}
+
+	// 测试 AI 服务
+	fmt.Println("\n=== Testing AI Service ===")
+	aiService, err := registry.GetService("ai-service")
+	if err != nil {
+		log.Fatalf("Failed to discover AI service: %v", err)
+	}
+	aiConn, err := grpc.Dial(fmt.Sprintf("%s:%d", aiService.Address, aiService.Port), grpc.WithInsecure())
+	if err != nil {
+		log.Fatalf("Failed to connect AI service: %v", err)
+	}
+	aiClient := ai.NewAIServiceClient(aiConn)
+
+	// 测试订单查询
+	queryResp, err := aiClient.QueryOrder(ctx, &ai.QueryOrderReq{
+		UserId: 1,
+		Query:  "我最近的订单状态如何？",
+	})
+	if err != nil {
+		log.Printf("AI query failed: %v", err)
+	} else {
+		log.Printf("AI response: %s", queryResp.Answer)
+	}
+
+	// 测试自动下单
+	autoOrderResp, err := aiClient.AutoPlaceOrder(ctx, &ai.AutoOrderReq{
+		UserId:      1,
+		Description: "我想买一个性价比高的手机",
+	})
+	if err != nil {
+		log.Printf("AI auto order failed: %v", err)
+	} else {
+		log.Printf("AI created order: %s", autoOrderResp.OrderId)
 	}
 }

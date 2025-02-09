@@ -24,6 +24,7 @@ const _ = grpc.SupportPackageIsVersion7
 type OrderServiceClient interface {
 	PlaceOrder(ctx context.Context, in *PlaceOrderReq, opts ...grpc.CallOption) (*PlaceOrderResp, error)
 	ListOrder(ctx context.Context, in *ListOrderReq, opts ...grpc.CallOption) (*ListOrderResp, error)
+	MarkOrderPaid(ctx context.Context, in *MarkOrderPaidReq, opts ...grpc.CallOption) (*MarkOrderPaidResp, error)
 }
 
 type orderServiceClient struct {
@@ -52,12 +53,22 @@ func (c *orderServiceClient) ListOrder(ctx context.Context, in *ListOrderReq, op
 	return out, nil
 }
 
+func (c *orderServiceClient) MarkOrderPaid(ctx context.Context, in *MarkOrderPaidReq, opts ...grpc.CallOption) (*MarkOrderPaidResp, error) {
+	out := new(MarkOrderPaidResp)
+	err := c.cc.Invoke(ctx, "/order.OrderService/MarkOrderPaid", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // OrderServiceServer is the server API for OrderService service.
 // All implementations must embed UnimplementedOrderServiceServer
 // for forward compatibility
 type OrderServiceServer interface {
 	PlaceOrder(context.Context, *PlaceOrderReq) (*PlaceOrderResp, error)
 	ListOrder(context.Context, *ListOrderReq) (*ListOrderResp, error)
+	MarkOrderPaid(context.Context, *MarkOrderPaidReq) (*MarkOrderPaidResp, error)
 	mustEmbedUnimplementedOrderServiceServer()
 }
 
@@ -70,6 +81,9 @@ func (UnimplementedOrderServiceServer) PlaceOrder(context.Context, *PlaceOrderRe
 }
 func (UnimplementedOrderServiceServer) ListOrder(context.Context, *ListOrderReq) (*ListOrderResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListOrder not implemented")
+}
+func (UnimplementedOrderServiceServer) MarkOrderPaid(context.Context, *MarkOrderPaidReq) (*MarkOrderPaidResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method MarkOrderPaid not implemented")
 }
 func (UnimplementedOrderServiceServer) mustEmbedUnimplementedOrderServiceServer() {}
 
@@ -120,6 +134,24 @@ func _OrderService_ListOrder_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _OrderService_MarkOrderPaid_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MarkOrderPaidReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrderServiceServer).MarkOrderPaid(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/order.OrderService/MarkOrderPaid",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrderServiceServer).MarkOrderPaid(ctx, req.(*MarkOrderPaidReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // OrderService_ServiceDesc is the grpc.ServiceDesc for OrderService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -134,6 +166,10 @@ var OrderService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListOrder",
 			Handler:    _OrderService_ListOrder_Handler,
+		},
+		{
+			MethodName: "MarkOrderPaid",
+			Handler:    _OrderService_MarkOrderPaid_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

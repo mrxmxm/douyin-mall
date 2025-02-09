@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package checkout;
+
+import "proto/payment/payment.proto";
+
+option go_package = "douyin-mall/proto/checkout";
+
+// 定义结算服务接口
+service CheckoutService {
+  // Checkout 处理结算请求
+  rpc Checkout(CheckoutReq) returns (CheckoutResp) {}
+}
+
+// 地址信息
+message Address {
+  string street_address = 1; // 街道地址
+  string city = 2;          // 城市
+  string state = 3;         // 州/省
+  string country = 4;       // 国家
+  string zip_code = 5;      // 邮编
+}
+
+// 结算请求参数
+message CheckoutReq {
+  uint32 user_id = 1;                    // 用户ID
+  string firstname = 2;                   // 名
+  string lastname = 3;                    // 姓
+  string email = 4;                       // 邮箱
+  Address address = 5;                    // 收货地址
+  payment.CreditCardInfo credit_card = 6; // 支付卡信息
+}
+
+// 结算响应
+message CheckoutResp {
+  string order_id = 1;       // 订单ID
+  string transaction_id = 2;  // 交易ID
+}

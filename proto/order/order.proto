@@ -6,10 +6,21 @@ import "proto/cart/cart.proto";
 
 option go_package = "douyin-mall/proto/order";
 
+// 定义订单服务接口
 service OrderService {
-  rpc PlaceOrder(PlaceOrderReq) returns (PlaceOrderResp) {}
-  rpc ListOrder(ListOrderReq) returns (ListOrderResp) {}
+  rpc PlaceOrder(PlaceOrderReq) returns (PlaceOrderResp) {}  // 创建订单
+  rpc ListOrder(ListOrderReq) returns (ListOrderResp) {}     // 获取订单列表
+  rpc MarkOrderPaid(MarkOrderPaidReq) returns (MarkOrderPaidResp) {} // 标记订单已支付
 }
+
+// 标记订单已支付请求
+message MarkOrderPaidReq {
+  uint32 user_id = 1;  // 用户ID
+  string order_id = 2; // 订单ID
+}
+
+// 标记订单已支付响应
+message MarkOrderPaidResp {}
 
 message Address {
   string street_address = 1;
@@ -20,20 +31,20 @@ message Address {
 }
 
 message PlaceOrderReq {
-  uint32 user_id = 1;
-  string user_currency = 2;
-  Address address = 3;
-  string email = 4;
-  repeated OrderItem order_items = 5;
+  uint32 user_id = 1;                // 用户ID
+  string user_currency = 2;          // 用户货币类型
+  Address address = 3;               // 收货地址
+  string email = 4;                  // 用户邮箱
+  repeated OrderItem order_items = 5; // 订单商品列表
 }
 
 message OrderItem {
-  cart.CartItem item = 1;
-  float cost = 2;
+  cart.CartItem item = 1; // 订单商品信息
+  float cost = 2;         // 商品成本
 }
 
 message OrderResult {
-  string order_id = 1;
+  string order_id = 1;               // 创建的订单ID
 }
 
 message PlaceOrderResp {
@@ -41,18 +52,19 @@ message PlaceOrderResp {
 }
 
 message ListOrderReq {
-  uint32 user_id = 1;
+  uint32 user_id = 1;                // 要查询的用户ID
 }
 
 message Order {
-  string order_id = 1;
-  uint32 user_id = 2;
-  string user_currency = 3;
-  repeated OrderItem order_items = 4;
-  string email = 5;
-  int32 created_at = 6;
+  repeated OrderItem order_items = 1; // 订单商品列表
+  string order_id = 2;               // 订单ID
+  uint32 user_id = 3;                // 用户ID
+  string user_currency = 4;          // 用户货币类型
+  Address address = 5;               // 收货地址
+  string email = 6;                  // 用户邮箱
+  int32 created_at = 7;              // 创建时间
 }
 
 message ListOrderResp {
-  repeated Order orders = 1;
+  repeated Order orders = 1;          // 订单列表
 }

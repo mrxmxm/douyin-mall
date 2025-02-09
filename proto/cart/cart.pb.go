@@ -25,8 +25,8 @@ type CartItem struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	ProductId uint32 `protobuf:"varint,1,opt,name=product_id,json=productId,proto3" json:"product_id,omitempty"`
-	Quantity  int32  `protobuf:"varint,2,opt,name=quantity,proto3" json:"quantity,omitempty"`
+	ProductId uint32 `protobuf:"varint,1,opt,name=product_id,json=productId,proto3" json:"product_id,omitempty"` // 商品ID
+	Quantity  int32  `protobuf:"varint,2,opt,name=quantity,proto3" json:"quantity,omitempty"`                    // 商品数量
 }
 
 func (x *CartItem) Reset() {
@@ -80,8 +80,8 @@ type AddItemReq struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	UserId uint32    `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	Item   *CartItem `protobuf:"bytes,2,opt,name=item,proto3" json:"item,omitempty"`
+	UserId uint32    `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"` // 用户ID
+	Item   *CartItem `protobuf:"bytes,2,opt,name=item,proto3" json:"item,omitempty"`                    // 要添加的商品信息
 }
 
 func (x *AddItemReq) Reset() {
@@ -173,7 +173,7 @@ type EmptyCartReq struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	UserId uint32 `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	UserId uint32 `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"` // 要清空的用户ID
 }
 
 func (x *EmptyCartReq) Reset() {
@@ -220,7 +220,7 @@ type GetCartReq struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	UserId uint32 `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	UserId uint32 `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"` // 用户ID
 }
 
 func (x *GetCartReq) Reset() {
@@ -267,7 +267,7 @@ type GetCartResp struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Cart *Cart `protobuf:"bytes,1,opt,name=cart,proto3" json:"cart,omitempty"`
+	Cart *Cart `protobuf:"bytes,1,opt,name=cart,proto3" json:"cart,omitempty"` // 购物车信息
 }
 
 func (x *GetCartResp) Reset() {
@@ -314,8 +314,8 @@ type Cart struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	UserId uint32      `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	Items  []*CartItem `protobuf:"bytes,2,rep,name=items,proto3" json:"items,omitempty"`
+	UserId uint32      `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"` // 用户ID
+	Items  []*CartItem `protobuf:"bytes,2,rep,name=items,proto3" json:"items,omitempty"`                  // 购物车商品列表
 }
 
 func (x *Cart) Reset() {

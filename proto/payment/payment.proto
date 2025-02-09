@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package payment;
+
+option go_package = "douyin-mall/proto/payment";
+
+// 定义支付服务接口
+service PaymentService {
+  // Charge 处理支付请求
+  rpc Charge(ChargeReq) returns (ChargeResp) {}
+}
+
+// ChargeReq 支付请求参数
+message ChargeReq {
+  float amount = 1;                // 支付金额
+  CreditCardInfo credit_card = 2;  // 信用卡信息
+  string order_id = 3;             // 订单ID
+  uint32 user_id = 4;              // 用户ID
+}
+
+// ChargeResp 支付响应
+message ChargeResp {
+  string transaction_id = 1;       // 交易ID
+}
+
+message CreditCardInfo {
+  string credit_card_number = 1;          // 信用卡号
+  int32 credit_card_cvv = 2;             // 安全码
+  int32 credit_card_expiration_year = 3;  // 过期年份
+  int32 credit_card_expiration_month = 4; // 过期月份
+}
