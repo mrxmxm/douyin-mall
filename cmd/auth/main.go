@@ -56,11 +56,11 @@ func main() {
 	// 启动 gRPC 服务器
 	lis, err := net.Listen("tcp", ":50052")
 	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+		log.Fatalf("Failed to listen: %v", err)
 	}
 
 	log.Printf("Auth service starting on :50052")
 	if err := server.Serve(lis); err != nil {
-		log.Fatalf("failed to serve: %v", err)
+		log.Fatalf("Failed to serve: %v", err)
 	}
 }

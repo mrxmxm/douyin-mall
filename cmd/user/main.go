@@ -47,13 +47,13 @@ func main() {
 
 	// 启动 gRPC 服务器（在新的 goroutine 中）
 	go func() {
-		server := grpc.NewServer()
-		user.RegisterUserServiceServer(server, userService)
 		lis, err := net.Listen("tcp", ":50051")
 		if err != nil {
 			log.Fatalf("failed to listen: %v", err)
 		}
-		log.Printf("gRPC server starting on :50051")
+		server := grpc.NewServer()
+		user.RegisterUserServiceServer(server, userService)
+		log.Printf("User service starting on :50051")
 		if err := server.Serve(lis); err != nil {
 			log.Fatalf("failed to serve: %v", err)
 		}

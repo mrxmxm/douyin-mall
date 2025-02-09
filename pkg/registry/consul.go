@@ -29,7 +29,7 @@ func (r *ConsulRegistry) Register(serviceName string, serviceID string, address 
 		Address: address,     // 服务地址
 		Port:    port,        // 服务端口
 		Check: &api.AgentServiceCheck{ // 健康检查配置
-			HTTP:     fmt.Sprintf("http://%s:%d/health", address, port),
+			TCP:      fmt.Sprintf("%s:%d", address, port),
 			Interval: "10s", // 检查间隔
 			Timeout:  "5s",  // 检查超时
 		},

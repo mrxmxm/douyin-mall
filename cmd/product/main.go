@@ -51,9 +51,12 @@ func main() {
 	// 启动 gRPC 服务器
 	go func() {
 		lis, _ := net.Listen("tcp", ":50053")
-		s := grpc.NewServer()
-		product.RegisterProductCatalogServiceServer(s, productService)
-		s.Serve(lis)
+		server := grpc.NewServer()
+		product.RegisterProductCatalogServiceServer(server, productService)
+		log.Printf("Product service starting on :50053")
+		if err := server.Serve(lis); err != nil {
+			log.Fatalf("Failed to serve: %v", err)
+		}
 	}()
 
 	// 启动 HTTP 服务器
