@@ -2,10 +2,11 @@ package service
 
 import (
 	"context"
-	aiclient "douyin-mall/pkg/ai"
+	"douyin-mall/pkg/aiclient"
 	"douyin-mall/proto/ai"
 	"douyin-mall/proto/order"
 	"fmt"
+	"strings"
 )
 
 type AIService struct {
@@ -35,10 +36,20 @@ func (s *AIService) QueryOrder(ctx context.Context, req *ai.QueryOrderReq) (*ai.
 		return nil, fmt.Errorf("failed to get orders: %v", err)
 	}
 
-	// 构建提示词
-	prompt := fmt.Sprintf("用户问题：%s\n订单信息：%v", req.Query, orders)
+	// 根据问题类型构建提示词
+	var prompt string
+	switch {
+	case strings.Contains(req.Query, "状态"):
+		prompt = fmt.Sprintf("订单状态：最近有 %d 个订单", len(orders.Orders))
+	case strings.Contains(req.Query, "金额"):
+		prompt = fmt.Sprintf("订单金额：共 %d 个订单", len(orders.Orders))
+	case strings.Contains(req.Query, "历史"):
+		prompt = fmt.Sprintf("订单历史：过去的 %d 个订单", len(orders.Orders))
+	default:
+		prompt = fmt.Sprintf("订单信息：总共 %d 个订单", len(orders.Orders))
+	}
 
-	// 调用大模型
+	// 调用 Mock AI 获取回答
 	response, err := s.aiClient.Chat(prompt)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get AI response: %v", err)
@@ -51,8 +62,8 @@ func (s *AIService) QueryOrder(ctx context.Context, req *ai.QueryOrderReq) (*ai.
 
 // AutoPlaceOrder 自动下单
 func (s *AIService) AutoPlaceOrder(ctx context.Context, req *ai.AutoOrderReq) (*ai.AutoOrderResp, error) {
-	// 调用大模型分析商品描述
-	prompt := fmt.Sprintf("根据描述推荐商品：%s", req.Description)
+	// 调用 Mock AI 分析商品描述
+	prompt := fmt.Sprintf("推荐商品：%s", req.Description)
 	suggestion, err := s.aiClient.Chat(prompt)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get AI suggestion: %v", err)
@@ -62,6 +73,6 @@ func (s *AIService) AutoPlaceOrder(ctx context.Context, req *ai.AutoOrderReq) (*
 	// 这里需要调用商品服务查找商品，然后创建订单
 
 	return &ai.AutoOrderResp{
-		OrderId: fmt.Sprintf("AI-ORDER-%s", suggestion), // 使用AI建议作为订单ID
+		OrderId: suggestion,
 	}, nil
 }

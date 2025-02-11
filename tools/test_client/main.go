@@ -237,6 +237,7 @@ func main() {
 	aiClient := ai.NewAIServiceClient(aiConn)
 
 	// 测试订单查询
+	log.Printf("测试 AI 订单查询...")
 	queryResp, err := aiClient.QueryOrder(ctx, &ai.QueryOrderReq{
 		UserId: 1,
 		Query:  "我最近的订单状态如何？",
@@ -244,10 +245,11 @@ func main() {
 	if err != nil {
 		log.Printf("AI query failed: %v", err)
 	} else {
-		log.Printf("AI response: %s", queryResp.Answer)
+		log.Printf("AI 回答: %s", queryResp.Answer)
 	}
 
 	// 测试自动下单
+	log.Printf("\n测试 AI 自动下单...")
 	autoOrderResp, err := aiClient.AutoPlaceOrder(ctx, &ai.AutoOrderReq{
 		UserId:      1,
 		Description: "我想买一个性价比高的手机",
@@ -255,6 +257,61 @@ func main() {
 	if err != nil {
 		log.Printf("AI auto order failed: %v", err)
 	} else {
-		log.Printf("AI created order: %s", autoOrderResp.OrderId)
+		log.Printf("AI 创建订单成功，订单ID: %s", autoOrderResp.OrderId)
+	}
+
+	// 测试场景1：订单查询
+	fmt.Println("\n=== 测试订单查询功能 ===")
+	testQueries := []string{
+		"我最近的订单状态如何？",
+		"我的订单金额是多少？",
+		"我的历史订单情况？",
+	}
+
+	for _, query := range testQueries {
+		log.Printf("\n测试查询：%s", query)
+		queryResp, err := aiClient.QueryOrder(ctx, &ai.QueryOrderReq{
+			UserId: 1,
+			Query:  query,
+		})
+		if err != nil {
+			log.Printf("查询失败: %v", err)
+		} else {
+			log.Printf("AI 回答: %s", queryResp.Answer)
+		}
+		time.Sleep(time.Second)
+	}
+
+	// 测试场景2：商品推荐
+	fmt.Println("\n=== 测试商品推荐功能 ===")
+	testProducts := []string{
+		"我想买一个性价比高的手机",
+		"推荐一款好用的笔记本电脑",
+		"需要一个降噪耳机",
+		"随便推荐一个商品",
+	}
+
+	for _, desc := range testProducts {
+		log.Printf("\n测试推荐：%s", desc)
+		autoOrderResp, err := aiClient.AutoPlaceOrder(ctx, &ai.AutoOrderReq{
+			UserId:      1,
+			Description: desc,
+		})
+		if err != nil {
+			log.Printf("推荐失败: %v", err)
+		} else {
+			log.Printf("推荐结果，订单ID: %s", autoOrderResp.OrderId)
+		}
+		time.Sleep(time.Second)
+	}
+
+	// 测试场景3：错误处理
+	fmt.Println("\n=== 测试错误处理 ===")
+	_, err = aiClient.QueryOrder(ctx, &ai.QueryOrderReq{
+		UserId: 1,
+		Query:  "error test",
+	})
+	if err != nil {
+		log.Printf("预期的错误: %v", err)
 	}
 }

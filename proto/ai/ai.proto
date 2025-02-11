@@ -4,10 +4,12 @@ package ai;
 
 option go_package = "douyin-mall/proto/ai";
 
-// AI服务接口
+// AI 服务接口定义
 service AIService {
-  rpc QueryOrder(QueryOrderReq) returns (QueryOrderResp) {}    // 订单查询
-  rpc AutoPlaceOrder(AutoOrderReq) returns (AutoOrderResp) {}  // 自动下单
+    // 查询：用自然语言查询订单、商品等信息
+    rpc Query(QueryReq) returns (QueryResp);
+    // 自动下单：根据用户描述自动选择商品并下单
+    rpc AutoPlaceOrder(AutoOrderReq) returns (AutoOrderResp);
 }
 
 // 订单查询请求
