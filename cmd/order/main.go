@@ -1,10 +1,14 @@
 package main
 
 import (
+	"context"
 	"douyin-mall/configs"
 	"douyin-mall/internal/order/model"
 	"douyin-mall/internal/order/service"
+	"douyin-mall/pkg/circuit"
 	"douyin-mall/pkg/db"
+	"douyin-mall/pkg/logger"
+	"douyin-mall/pkg/ratelimit"
 	"douyin-mall/pkg/registry"
 	"douyin-mall/proto/order"
 	"fmt"
@@ -13,7 +17,10 @@ import (
 	"time"
 
 	"github.com/cloudwego/hertz/pkg/app/server"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 func main() {
@@ -45,12 +52,35 @@ func main() {
 		log.Fatalf("Failed to register service: %v", err)
 	}
 
+	// 初始化限流器
+	limiter := ratelimit.NewRateLimiter(100, 200)
+
+	// 初始化断路器
+	breaker := circuit.NewCircuitBreaker("order-service")
+
 	// 启动 gRPC 服务器
 	go func() {
 		lis, _ := net.Listen("tcp", ":50055")
-		s := grpc.NewServer()
-		order.RegisterOrderServiceServer(s, orderService)
-		s.Serve(lis)
+		server := grpc.NewServer(
+			grpc.UnaryInterceptor(func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+				if !limiter.Allow() {
+					return nil, status.Error(codes.ResourceExhausted, "rate limit exceeded")
+				}
+				logger.Info("Received request", zap.String("method", info.FullMethod))
+				resp, err := breaker.Execute(func() (interface{}, error) {
+					return handler(ctx, req)
+				})
+				if err != nil {
+					logger.Error("Request failed", zap.Error(err))
+				}
+				return resp, err
+			}),
+		)
+		order.RegisterOrderServiceServer(server, orderService)
+		log.Printf("Order service starting on :50055")
+		if err := server.Serve(lis); err != nil {
+			log.Fatalf("Failed to serve: %v", err)
+		}
 	}()
 
 	// 启动 HTTP 服务器

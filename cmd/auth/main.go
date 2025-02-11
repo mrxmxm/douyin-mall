@@ -8,12 +8,21 @@ import (
 	"douyin-mall/proto/auth"
 	"douyin-mall/proto/user"
 
+	"context"
 	"fmt"
 	"log"
 	"net"
 	"time"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
+	"douyin-mall/pkg/circuit"
+	"douyin-mall/pkg/logger"
+	"douyin-mall/pkg/ratelimit"
+
+	"go.uber.org/zap"
 )
 
 func main() {
@@ -43,11 +52,31 @@ func main() {
 		log.Fatalf("Failed to register service: %v", err)
 	}
 
+	// 初始化限流器
+	limiter := ratelimit.NewRateLimiter(100, 200)
+	// 初始化断路器
+	breaker := circuit.NewCircuitBreaker("auth-service")
+
 	// 创建 gRPC 服务器,添加认证中间件
 	jwtSecret := []byte("your-secret-key") // 建议从配置文件读取
 	authInterceptor := middleware.NewAuthInterceptor(jwtSecret)
 	server := grpc.NewServer(
-		grpc.UnaryInterceptor(authInterceptor.Unary()),
+		grpc.ChainUnaryInterceptor(
+			authInterceptor.Unary(),
+			func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+				if !limiter.Allow() {
+					return nil, status.Error(codes.ResourceExhausted, "rate limit exceeded")
+				}
+				logger.Info("Received request", zap.String("method", info.FullMethod))
+				resp, err := breaker.Execute(func() (interface{}, error) {
+					return handler(ctx, req)
+				})
+				if err != nil {
+					logger.Error("Request failed", zap.Error(err))
+				}
+				return resp, err
+			},
+		),
 	)
 
 	// 注册认证服务
